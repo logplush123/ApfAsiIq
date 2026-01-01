@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Start Screen -->
     <div id="start-screen" class="screen active">
         <div class="glass-card intro-card">
             <div class="app-icon">
@@ -42,7 +41,7 @@
                 <h3><i class="fas fa-info-circle"></i> Instructions</h3>
                 <ul>
                     <li>15 questions with varying difficulty</li>
-                    <li>One-time hint available for entire test</li>
+                    <li>10 Hints available for the entire test</li>
                     <li>20 seconds per question</li>
                     <li>Score calculated based on correct answers</li>
                 </ul>
@@ -59,10 +58,8 @@
         </div>
     </div>
     
-    <!-- Quiz Screen -->
     <div id="quiz-screen" class="screen">
         <div class="quiz-container">
-            <!-- Header -->
             <header class="quiz-header">
                 <div class="header-top">
                     <button id="back-btn" class="icon-btn">
@@ -75,7 +72,6 @@
                     </div>
                 </div>
                 
-                <!-- Progress Bar -->
                 <div class="progress-container">
                     <div class="progress-bar">
                         <div id="progress" class="progress-fill"></div>
@@ -85,54 +81,53 @@
                     </div>
                 </div>
                 
-                <!-- Question Type Indicator -->
                 <div id="question-type" class="question-type">
                     <i class="fas fa-puzzle-piece"></i>
                     <span>Pattern Recognition</span>
                 </div>
             </header>
             
-            <!-- Question Area -->
             <main class="question-area">
-                <div id="question-container" class="question-container">
-                    <!-- Question will be inserted here by JavaScript -->
-                </div>
-                
-                <!-- Options Grid -->
-                <div id="options-container" class="options-grid">
-                    <!-- Options will be inserted here by JavaScript -->
-                </div>
+                <div id="question-container" class="question-container"></div>
+                <div id="options-container" class="options-grid"></div>
             </main>
             
-            <!-- Footer with Hint Button -->
             <footer class="quiz-footer">
                 <button id="hint-btn" class="btn-hint">
                     <i class="fas fa-lightbulb"></i>
-                    <span>Use Hint (One-time)</span>
+                    <span id="hint-count-text">Use Hint (10 Left)</span>
                 </button>
             </footer>
         </div>
         
-        <!-- Hint Modal -->
         <div id="hint-modal" class="modal">
             <div class="modal-content glass-card">
                 <div class="modal-header">
                     <h3><i class="fas fa-lightbulb"></i> Hint</h3>
-                    <button id="close-hint" class="icon-btn small">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <button id="close-hint" class="icon-btn small"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="modal-body">
-                    <p id="hint-text">Hint will appear here when you use it.</p>
+                    <p id="hint-text">Hint will appear here.</p>
                 </div>
-                <div class="modal-footer">
-                    <p class="hint-warning"><i class="fas fa-exclamation-triangle"></i> This is your only hint for the entire test!</p>
+            </div>
+        </div>
+
+        <div id="quit-modal" class="modal">
+            <div class="modal-content glass-card">
+                <div class="modal-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Quit Test?</h3>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to quit? Your progress will be lost permanently.</p>
+                </div>
+                <div class="modal-footer-btns">
+                    <button id="confirm-quit-btn" class="btn-danger">Yes, Quit</button>
+                    <button id="cancel-quit-btn" class="btn-secondary">No, Continue</button>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Result Screen -->
     <div id="result-screen" class="screen">
         <div class="glass-card result-card">
             <div class="result-icon">
