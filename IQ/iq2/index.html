@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IQ प्रश्नोत्तरी - Nepali IQ Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans">
+    <div class="max-w-4xl mx-auto px-4 py-6">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <div class="glass-dark p-6 rounded-2xl mb-4">
+                <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                    🧠 IQ प्रश्नोत्तरी
+                </h1>
+                <p class="text-gray-300">नेपाली बुद्धिमत्ता परीक्षण - प्रत्येक प्रश्न १५ सेकेन्ड</p>
+            </div>
+        </header>
+
+        <!-- Main App -->
+        <main>
+            <!-- Progress & Timer -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="text-lg font-medium" id="progress-text">प्रश्न 1/50</div>
+                    <div id="timer" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full text-xl font-bold shadow-lg">
+                        <i class="fas fa-clock mr-2"></i>
+                        <span id="timer-display">15</span> सेकेन्ड
+                    </div>
+                </div>
+                <div class="h-3 bg-gray-700 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500" style="width: 2%"></div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div id="question-card" class="glass-dark p-6 rounded-2xl mb-6">
+                <!-- Question -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-200 mb-4 flex items-center">
+                        <i class="fas fa-brain text-blue-400 mr-3"></i>
+                        प्रश्न:
+                    </h2>
+                    <div id="question-text" class="text-lg leading-relaxed text-gray-100 min-h-[80px]">
+                        प्रश्न लोड हुँदैछ...
+                    </div>
+                </div>
+
+                <!-- Options -->
+                <div class="space-y-3 mb-6" id="options-container">
+                    <!-- Options will be dynamically inserted here -->
+                </div>
+
+                <!-- Feedback -->
+                <div id="feedback" class="hidden mb-4 p-4 rounded-xl"></div>
+
+                <!-- Hint & Explanation -->
+                <div id="hint-section" class="hidden mb-4">
+                    <div class="bg-yellow-900/30 border border-yellow-700/50 rounded-xl p-4">
+                        <h3 class="font-semibold text-yellow-300 mb-2 flex items-center">
+                            <i class="fas fa-lightbulb mr-2"></i> सुझाव:
+                        </h3>
+                        <p id="hint-text" class="text-yellow-100"></p>
+                    </div>
+                </div>
+
+                <div id="explanation-section" class="hidden">
+                    <div class="bg-green-900/30 border border-green-700/50 rounded-xl p-4">
+                        <h3 class="font-semibold text-green-300 mb-2 flex items-center">
+                            <i class="fas fa-check-circle mr-2"></i> समाधान:
+                        </h3>
+                        <p id="explanation-text" class="text-green-100"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                <button id="hint-btn" class="action-btn bg-yellow-600 hover:bg-yellow-700">
+                    <i class="fas fa-question-circle mr-2"></i> सुझाव
+                </button>
+                <button id="solution-btn" class="action-btn bg-green-600 hover:bg-green-700">
+                    <i class="fas fa-eye mr-2"></i> उत्तर
+                </button>
+                <button id="skip-btn" class="action-btn bg-red-600 hover:bg-red-700">
+                    <i class="fas fa-forward mr-2"></i> छोड्नुहोस्
+                </button>
+                <button id="next-btn" class="action-btn bg-blue-600 hover:bg-blue-700">
+                    <i class="fas fa-arrow-right mr-2"></i> अर्को
+                </button>
+            </div>
+
+            <!-- Stats -->
+            <div class="glass-dark p-4 rounded-2xl">
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div class="text-2xl font-bold text-green-400" id="correct-count">0</div>
+                        <div class="text-sm text-gray-400">सही</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-gray-300" id="score">0</div>
+                        <div class="text-sm text-gray-400">स्कोर</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-red-400" id="wrong-count">0</div>
+                        <div class="text-sm text-gray-400">गलत</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center text-gray-500 text-sm mt-8">
+            <p>© 2024 IQ प्रश्नोत्तरी - Log Plus</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

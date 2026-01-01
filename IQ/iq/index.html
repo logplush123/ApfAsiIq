@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IQ Test Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Start Screen -->
+    <div id="start-screen" class="screen active">
+        <div class="glass-card intro-card">
+            <div class="app-icon">
+                <div class="icon-circle">
+                    <i class="fas fa-brain"></i>
+                </div>
+            </div>
+            <h1 class="app-title">IQ Test Pro</h1>
+            <p class="app-subtitle">Test your cognitive abilities with 15 challenging questions</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Pattern Recognition</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-shapes"></i>
+                    <span>Visual Analysis</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-sort-alpha-up"></i>
+                    <span>Logical Sequences</span>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h3><i class="fas fa-info-circle"></i> Instructions</h3>
+                <ul>
+                    <li>15 questions with varying difficulty</li>
+                    <li>One-time hint available for entire test</li>
+                    <li>20 seconds per question</li>
+                    <li>Score calculated based on correct answers</li>
+                </ul>
+            </div>
+            
+            <button id="start-btn" class="btn-primary">
+                <span>Start IQ Test</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            
+            <div class="test-info">
+                <p><i class="fas fa-clock"></i> Estimated time: 5-7 minutes</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-container">
+            <!-- Header -->
+            <header class="quiz-header">
+                <div class="header-top">
+                    <button id="back-btn" class="icon-btn">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h2 class="quiz-title">IQ Test</h2>
+                    <div class="timer-container">
+                        <i class="fas fa-clock"></i>
+                        <span id="timer">20</span>s
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div id="progress" class="progress-fill"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span id="current-question">1</span> / 15
+                    </div>
+                </div>
+                
+                <!-- Question Type Indicator -->
+                <div id="question-type" class="question-type">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Pattern Recognition</span>
+                </div>
+            </header>
+            
+            <!-- Question Area -->
+            <main class="question-area">
+                <div id="question-container" class="question-container">
+                    <!-- Question will be inserted here by JavaScript -->
+                </div>
+                
+                <!-- Options Grid -->
+                <div id="options-container" class="options-grid">
+                    <!-- Options will be inserted here by JavaScript -->
+                </div>
+            </main>
+            
+            <!-- Footer with Hint Button -->
+            <footer class="quiz-footer">
+                <button id="hint-btn" class="btn-hint">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Use Hint (One-time)</span>
+                </button>
+            </footer>
+        </div>
+        
+        <!-- Hint Modal -->
+        <div id="hint-modal" class="modal">
+            <div class="modal-content glass-card">
+                <div class="modal-header">
+                    <h3><i class="fas fa-lightbulb"></i> Hint</h3>
+                    <button id="close-hint" class="icon-btn small">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="hint-text">Hint will appear here when you use it.</p>
+                </div>
+                <div class="modal-footer">
+                    <p class="hint-warning"><i class="fas fa-exclamation-triangle"></i> This is your only hint for the entire test!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Result Screen -->
+    <div id="result-screen" class="screen">
+        <div class="glass-card result-card">
+            <div class="result-icon">
+                <div class="icon-circle result">
+                    <i class="fas fa-trophy"></i>
+                </div>
+            </div>
+            
+            <h1 class="result-title">Test Complete!</h1>
+            <p class="result-subtitle">Your IQ score has been calculated</p>
+            
+            <div class="score-display">
+                <div class="score-circle">
+                    <div class="score-value" id="final-score">0</div>
+                    <div class="score-label">IQ Score</div>
+                </div>
+                
+                <div class="score-breakdown">
+                    <div class="breakdown-item">
+                        <span>Correct Answers</span>
+                        <span id="correct-count">0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Total Questions</span>
+                        <span>15</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Accuracy</span>
+                        <span id="accuracy">0%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="iq-category">
+                <h3><i class="fas fa-chart-line"></i> IQ Category</h3>
+                <div class="category-card">
+                    <h4 id="iq-category">Calculating...</h4>
+                    <p id="category-description">Based on your performance</p>
+                </div>
+            </div>
+            
+            <div class="result-actions">
+                <button id="restart-btn" class="btn-primary">
+                    <i class="fas fa-redo"></i>
+                    <span>Retake Test</span>
+                </button>
+                <button id="share-btn" class="btn-secondary">
+                    <i class="fas fa-share"></i>
+                    <span>Share Results</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
