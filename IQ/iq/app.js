@@ -1,15 +1,15 @@
 // app.js - Main application logic
-
 document.addEventListener('DOMContentLoaded', function() {
     // App State
     const state = {
         currentQuestionIndex: 0,
         score: 0,
         userAnswers: [],
-        hintUsed: false,
+        hintsRemaining: 10,
         timer: null,
         timeLeft: 20,
-        totalQuestions: 15 // We'll use only 15 out of 50 questions
+        totalQuestions: 15,
+        isPaused: false
     };
     
     // DOM Elements
@@ -31,9 +31,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const optionsContainer = document.getElementById('options-container');
     
     const hintBtn = document.getElementById('hint-btn');
+    const hintCountText = document.getElementById('hint-count-text');
     const hintModal = document.getElementById('hint-modal');
     const closeHintBtn = document.getElementById('close-hint');
     const hintText = document.getElementById('hint-text');
+
+    const quitModal = document.getElementById('quit-modal');
+    const confirmQuitBtn = document.getElementById('confirm-quit-btn');
+    const cancelQuitBtn = document.getElementById('cancel-quit-btn');
     
     const finalScoreElement = document.getElementById('final-score');
     const correctCountElement = document.getElementById('correct-count');
@@ -41,367 +46,194 @@ document.addEventListener('DOMContentLoaded', function() {
     const iqCategoryElement = document.getElementById('iq-category');
     const categoryDescriptionElement = document.getElementById('category-description');
     
-    // Select 15 random questions from the pool of 50
-    const selectedQuestions = getRandomQuestions(iqQuestions, 15);
-    
-    // Initialize the app
+    let selectedQuestions = [];
+
     function init() {
-        // Event Listeners
         startBtn.addEventListener('click', startTest);
-        backBtn.addEventListener('click', goToStart);
+        backBtn.addEventListener('click', showQuitModal);
         restartBtn.addEventListener('click', restartTest);
         shareBtn.addEventListener('click', shareResults);
-        hintBtn.addEventListener('click', showHint);
+        hintBtn.addEventListener('click', useHint);
         closeHintBtn.addEventListener('click', closeHint);
         
-        // Close modal when clicking outside
-        hintModal.addEventListener('click', function(e) {
-            if (e.target === hintModal) {
-                closeHint();
-            }
+        confirmQuitBtn.addEventListener('click', confirmQuit);
+        cancelQuitBtn.addEventListener('click', closeQuitModal);
+
+        window.addEventListener('click', (e) => {
+            if (e.target === hintModal) closeHint();
+            if (e.target === quitModal) closeQuitModal();
         });
     }
-    
-    // Get random questions from the pool
+
     function getRandomQuestions(questions, count) {
         const shuffled = [...questions].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, count);
     }
-    
-    // Start the test
+
     function startTest() {
-        // Reset state
+        selectedQuestions = getRandomQuestions(iqQuestions, 15);
         state.currentQuestionIndex = 0;
         state.score = 0;
         state.userAnswers = [];
-        state.hintUsed = false;
+        state.hintsRemaining = 10;
         state.timeLeft = 20;
+        state.isPaused = false;
         
-        // Enable hint button
-        hintBtn.disabled = false;
-        hintBtn.innerHTML = '<i class="fas fa-lightbulb"></i><span>Use Hint (One-time)</span>';
-        
-        // Switch screens
+        updateHintUI();
         startScreen.classList.remove('active');
         quizScreen.classList.add('active');
         
-        // Load first question
         loadQuestion();
         startTimer();
     }
-    
-    // Load current question
+
     function loadQuestion() {
         const question = selectedQuestions[state.currentQuestionIndex];
-        
-        // Update progress
         currentQuestionElement.textContent = state.currentQuestionIndex + 1;
-        progressFill.style.width = `${((state.currentQuestionIndex + 1) / selectedQuestions.length) * 100}%`;
+        progressFill.style.width = `${((state.currentQuestionIndex + 1) / 15) * 100}%`;
         
-        // Update question type indicator
         updateQuestionType(question.type);
+        questionContainer.innerHTML = `<div class="question-text">${question.question}</div>`;
+        questionContainer.classList.remove('slide-out');
         
-        // Create question HTML based on type
-        questionContainer.innerHTML = '';
-        questionContainer.className = 'question-container';
-        
-        const questionText = document.createElement('div');
-        questionText.className = 'question-text';
-        questionText.textContent = question.question;
-        questionContainer.appendChild(questionText);
-        
-        // Add visual elements for visual questions
-        if (question.type === 'visual' && question.id === 16) {
-            // Triangle counting question
-            const visualContainer = document.createElement('div');
-            visualContainer.className = 'visual-question';
-            
-            const triangleContainer = document.createElement('div');
-            triangleContainer.className = 'triangle-container';
-            
-            // Create triangle shapes
-            for (let i = 1; i <= 5; i++) {
-                const triangle = document.createElement('div');
-                triangle.className = `triangle triangle-${i}`;
-                triangleContainer.appendChild(triangle);
-            }
-            
-            visualContainer.appendChild(triangleContainer);
-            questionContainer.appendChild(visualContainer);
-        } else if (question.type === 'visual' && question.id === 17) {
-            // Grid squares question
-            const gridContainer = document.createElement('div');
-            gridContainer.className = 'shape-grid';
-            
-            for (let i = 1; i <= 9; i++) {
-                const square = document.createElement('div');
-                square.className = 'shape-item';
-                square.textContent = '□';
-                gridContainer.appendChild(square);
-            }
-            
-            questionContainer.appendChild(gridContainer);
-        } else if (question.type === 'number' || question.type === 'alphabet') {
-            // Show sequence for pattern questions
-            const sequenceContainer = document.createElement('div');
-            sequenceContainer.className = 'sequence-container';
-            
-            // Extract the sequence from the question text
-            const seqMatch = question.question.match(/(\d+(?:,\s*\d+)*|[A-Z](?:,\s*[A-Z])*)/);
-            if (seqMatch) {
-                sequenceContainer.textContent = seqMatch[0] + ', ?';
-            } else {
-                sequenceContainer.textContent = question.question;
-            }
-            
-            questionContainer.appendChild(sequenceContainer);
-        }
-        
-        // Create options
         optionsContainer.innerHTML = '';
         question.options.forEach((option, index) => {
-            const optionBtn = document.createElement('button');
-            optionBtn.className = 'option-btn';
-            optionBtn.textContent = option;
-            optionBtn.dataset.index = index;
-            
-            optionBtn.addEventListener('click', function() {
-                selectOption(this, index, question.correct);
-            });
-            
-            optionsContainer.appendChild(optionBtn);
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = option;
+            btn.onclick = () => selectOption(btn, index, question.correct);
+            optionsContainer.appendChild(btn);
         });
-        
-        // Reset timer
         resetTimer();
     }
-    
-    // Update question type indicator
+
     function updateQuestionType(type) {
-        let icon, text;
-        
-        switch(type) {
-            case 'number':
-                icon = 'fas fa-sort-numeric-up';
-                text = 'Number Pattern';
-                break;
-            case 'visual':
-                icon = 'fas fa-shapes';
-                text = 'Visual Reasoning';
-                break;
-            case 'alphabet':
-                icon = 'fas fa-sort-alpha-up';
-                text = 'Alphabet Sequence';
-                break;
-            default:
-                icon = 'fas fa-puzzle-piece';
-                text = 'Logical Reasoning';
-        }
-        
-        questionTypeElement.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
+        const configs = {
+            number: { icon: 'fas fa-sort-numeric-up', text: 'Number Pattern' },
+            visual: { icon: 'fas fa-shapes', text: 'Visual Reasoning' },
+            alphabet: { icon: 'fas fa-sort-alpha-up', text: 'Alphabet Sequence' },
+            default: { icon: 'fas fa-puzzle-piece', text: 'Logical Reasoning' }
+        };
+        const config = configs[type] || configs.default;
+        questionTypeElement.innerHTML = `<i class="${config.icon}"></i><span>${config.text}</span>`;
     }
-    
-    // Handle option selection
+
     function selectOption(button, selectedIndex, correctIndex) {
-        // Disable all buttons
-        const allButtons = optionsContainer.querySelectorAll('.option-btn');
-        allButtons.forEach(btn => {
-            btn.disabled = true;
-            btn.classList.remove('selected');
-        });
-        
-        // Mark selected button
-        button.classList.add('selected');
-        
-        // Check if answer is correct
-        const isCorrect = selectedIndex === correctIndex;
-        
-        if (isCorrect) {
-            button.classList.add('correct');
-            state.score++;
-        } else {
-            button.classList.add('wrong');
-            // Highlight correct answer
-            allButtons[correctIndex].classList.add('correct');
-        }
-        
-        // Store user's answer
-        state.userAnswers.push({
-            questionIndex: state.currentQuestionIndex,
-            selected: selectedIndex,
-            correct: isCorrect
-        });
-        
-        // Stop timer
         clearInterval(state.timer);
+        const allButtons = optionsContainer.querySelectorAll('.option-btn');
+        allButtons.forEach(btn => btn.disabled = true);
         
-        // Auto-advance to next question after 1 second
+        const isCorrect = selectedIndex === correctIndex;
+        button.classList.add('selected', isCorrect ? 'correct' : 'wrong');
+        if (!isCorrect) allButtons[correctIndex].classList.add('correct');
+        
+        if (isCorrect) state.score++;
+        
         setTimeout(() => {
-            // Add slide-out animation
             questionContainer.classList.add('slide-out');
-            
             setTimeout(() => {
-                // Move to next question or finish test
                 state.currentQuestionIndex++;
-                
-                if (state.currentQuestionIndex < selectedQuestions.length) {
-                    loadQuestion();
-                    startTimer();
-                } else {
-                    finishTest();
-                }
+                state.currentQuestionIndex < 15 ? loadQuestion() || startTimer() : finishTest();
             }, 500);
         }, 1000);
     }
-    
-    // Timer functions
+
     function startTimer() {
-        state.timeLeft = 20;
-        timerElement.textContent = state.timeLeft;
-        timerElement.parentElement.classList.remove('warning', 'critical');
-        
+        if (state.timer) clearInterval(state.timer);
         state.timer = setInterval(() => {
+            if (state.isPaused) return;
             state.timeLeft--;
             timerElement.textContent = state.timeLeft;
             
-            // Update timer color based on remaining time
-            if (state.timeLeft <= 10) {
-                timerElement.parentElement.classList.add('warning');
-            }
+            if (state.timeLeft <= 10) timerElement.parentElement.classList.add('warning');
+            if (state.timeLeft <= 5) timerElement.parentElement.classList.add('critical');
             
-            if (state.timeLeft <= 5) {
-                timerElement.parentElement.classList.add('critical');
-            }
-            
-            // Time's up
             if (state.timeLeft <= 0) {
                 clearInterval(state.timer);
-                autoSelectOption();
+                autoSelect();
             }
         }, 1000);
     }
-    
+
     function resetTimer() {
-        clearInterval(state.timer);
         state.timeLeft = 20;
         timerElement.textContent = state.timeLeft;
         timerElement.parentElement.classList.remove('warning', 'critical');
     }
-    
-    function autoSelectOption() {
-        // Automatically select the first option when time runs out
-        const firstButton = optionsContainer.querySelector('.option-btn');
-        if (firstButton) {
-            const question = selectedQuestions[state.currentQuestionIndex];
-            selectOption(firstButton, 0, question.correct);
-        }
+
+    function autoSelect() {
+        const firstBtn = optionsContainer.querySelector('.option-btn');
+        if (firstBtn) selectOption(firstBtn, -1, selectedQuestions[state.currentQuestionIndex].correct);
     }
-    
-    // Hint system
-    function showHint() {
-        if (state.hintUsed) return;
-        
-        const question = selectedQuestions[state.currentQuestionIndex];
-        hintText.textContent = question.hint;
-        
-        // Mark hint as used
-        state.hintUsed = true;
-        hintBtn.disabled = true;
-        hintBtn.innerHTML = '<i class="fas fa-lightbulb"></i><span>Hint Used</span>';
-        
-        // Show modal
+
+    function useHint() {
+        if (state.hintsRemaining <= 0 || state.isPaused) return;
+        state.hintsRemaining--;
+        updateHintUI();
+        hintText.textContent = selectedQuestions[state.currentQuestionIndex].hint;
+        state.isPaused = true;
         hintModal.classList.add('active');
     }
-    
+
     function closeHint() {
         hintModal.classList.remove('active');
+        state.isPaused = false;
     }
-    
-    // Finish test and show results
+
+    function updateHintUI() {
+        hintCountText.textContent = `Use Hint (${state.hintsRemaining} Left)`;
+        if (state.hintsRemaining <= 0) hintBtn.classList.add('disabled');
+    }
+
+    function showQuitModal() {
+        state.isPaused = true;
+        quitModal.classList.add('active');
+    }
+
+    function closeQuitModal() {
+        quitModal.classList.remove('active');
+        state.isPaused = false;
+    }
+
+    function confirmQuit() {
+        clearInterval(state.timer);
+        quitModal.classList.remove('active');
+        quizScreen.classList.remove('active');
+        startScreen.classList.add('active');
+    }
+
     function finishTest() {
-        // Calculate final score (IQ score from 70 to 130)
-        const percentage = (state.score / selectedQuestions.length) * 100;
+        const percentage = Math.round((state.score / 15) * 100);
         const iqScore = Math.round(70 + (percentage / 100) * 60);
         
-        // Calculate accuracy
-        const accuracy = Math.round((state.score / selectedQuestions.length) * 100);
-        
-        // Determine IQ category
-        let category, description;
-        if (iqScore >= 130) {
-            category = "Very Superior";
-            description = "Top 2% of population";
-        } else if (iqScore >= 120) {
-            category = "Superior";
-            description = "Top 14% of population";
-        } else if (iqScore >= 110) {
-            category = "High Average";
-            description = "Above average intelligence";
-        } else if (iqScore >= 90) {
-            category = "Average";
-            description = "Average intelligence";
-        } else if (iqScore >= 80) {
-            category = "Low Average";
-            description = "Below average intelligence";
-        } else {
-            category = "Borderline";
-            description = "Significantly below average";
-        }
-        
-        // Update result screen
         finalScoreElement.textContent = iqScore;
         correctCountElement.textContent = state.score;
-        accuracyElement.textContent = `${accuracy}%`;
-        iqCategoryElement.textContent = category;
-        categoryDescriptionElement.textContent = description;
+        accuracyElement.textContent = `${percentage}%`;
         
-        // Switch to result screen
+        let cat, desc;
+        if (iqScore >= 130) { cat = "Very Superior"; desc = "Top 2% of population"; }
+        else if (iqScore >= 120) { cat = "Superior"; desc = "Top 14% of population"; }
+        else if (iqScore >= 110) { cat = "High Average"; desc = "Above average intelligence"; }
+        else if (iqScore >= 90) { cat = "Average"; desc = "Normal intelligence"; }
+        else { cat = "Below Average"; desc = "Keep practicing!"; }
+
+        iqCategoryElement.textContent = cat;
+        categoryDescriptionElement.textContent = desc;
+        
         quizScreen.classList.remove('active');
         resultScreen.classList.add('active');
     }
-    
-    // Navigation functions
-    function goToStart() {
-        if (confirm("Are you sure you want to quit? Your progress will be lost.")) {
-            // Stop timer
-            clearInterval(state.timer);
-            
-            // Switch screens
-            quizScreen.classList.remove('active');
-            startScreen.classList.add('active');
-        }
-    }
-    
+
     function restartTest() {
-        // Switch screens
         resultScreen.classList.remove('active');
         startScreen.classList.add('active');
     }
-    
+
     function shareResults() {
-        const iqScore = finalScoreElement.textContent;
-        const category = iqCategoryElement.textContent;
-        
-        const shareText = `I scored ${iqScore} on the IQ Test Pro (${category} range)! Try it yourself:`;
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'My IQ Test Results',
-                text: shareText,
-                url: window.location.href
-            });
-        } else {
-            // Fallback: copy to clipboard
-            navigator.clipboard.writeText(shareText + ' ' + window.location.href)
-                .then(() => {
-                    alert('Results copied to clipboard!');
-                })
-                .catch(err => {
-                    console.error('Failed to copy: ', err);
-                });
-        }
+        const text = `I scored ${finalScoreElement.textContent} on IQ Test Pro!`;
+        if (navigator.share) navigator.share({ title: 'IQ Results', text: text, url: window.location.href });
+        else alert('Results copied to clipboard!');
     }
-    
-    // Initialize the app
+
     init();
 });
